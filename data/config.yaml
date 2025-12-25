@@ -1,35 +1,47 @@
 available:
   Mon:
-    - time: 09:00-10:00
+    - time: 06:00-07:00
       type: routine
+    - time: 10:00-13:00
+      type: any
+    - time: 14:00-19:00
+      type: any
   Tue:
-    - time: 09:00-10:00
+    - time: 06:00-07:00
       type: routine
-    - time: 13:00-14:00
-      type: project
+    - time: 10:00-13:00
+      type: any
+    - time: 14:00-19:00
+      type: any
     - time: 19:00-23:00
-      type: project
+      type: any
   Wed:
-    - time: 09:00-10:00
+    - time: 06:00-07:00
       type: routine
-    - time: 13:00-14:00
-      type: project
+    - time: 10:00-13:00
+      type: any
+    - time: 14:00-19:00
+      type: any
     - time: 19:00-23:00
-      type: project
+      type: any
   Thu:
-    - time: 09:00-10:00
+    - time: 06:00-07:00
       type: routine
-    - time: 13:00-14:00
-      type: project
+    - time: 10:00-13:00
+      type: any
+    - time: 14:00-19:00
+      type: any
     - time: 19:00-23:00
-      type: project
+      type: any
   Fri:
-    - time: 09:00-10:00
+    - time: 06:00-07:00
       type: routine
-    - time: 13:00-14:00
-      type: project
+    - time: 10:00-13:00
+      type: any
+    - time: 14:00-19:00
+      type: any
     - time: 19:00-23:00
-      type: project
+      type: any
   Sat:
     - time: 21:00-24:00
       type: any

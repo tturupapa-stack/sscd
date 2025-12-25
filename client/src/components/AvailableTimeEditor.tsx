@@ -46,6 +46,15 @@ export default function AvailableTimeEditor({
     return slot
   }
 
+  // 시간순으로 슬롯 정렬
+  const sortSlotsByTime = (slots: TimeSlotConfig[]): TimeSlotConfig[] => {
+    return [...slots].sort((a, b) => {
+      const startA = a.time.split('-')[0]
+      const startB = b.time.split('-')[0]
+      return startA.localeCompare(startB)
+    })
+  }
+
   const handleAddSlot = useCallback((day: string) => {
     setNewSlot({ day })
     setTempStart('09:00')
@@ -79,13 +88,15 @@ export default function AvailableTimeEditor({
       const { day, index } = editingSlot
       const slots = [...(available[day] || [])].map(normalizeSlot)
       slots[index] = newSlotValue
-      onChange({ ...available, [day]: slots })
+      // 시간순 정렬 후 저장
+      onChange({ ...available, [day]: sortSlotsByTime(slots) })
       setEditingSlot(null)
     } else if (newSlot) {
       const { day } = newSlot
       const slots = [...(available[day] || [])].map(normalizeSlot)
       slots.push(newSlotValue)
-      onChange({ ...available, [day]: slots })
+      // 시간순 정렬 후 저장
+      onChange({ ...available, [day]: sortSlotsByTime(slots) })
       setNewSlot(null)
     }
 
