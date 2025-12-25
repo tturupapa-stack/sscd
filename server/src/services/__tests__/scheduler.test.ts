@@ -16,7 +16,6 @@ describe('scheduler', () => {
     },
     focus: 'focus-project',
     buffer: 'buffer-project',
-    queue: [],
     schedule_weeks: 2,
     calendar_id: 'primary',
   }
@@ -206,36 +205,6 @@ describe('scheduler', () => {
         expect(result.summary.scheduledTasks).toBeGreaterThanOrEqual(0)
       })
 
-      it('should not schedule tasks from queue projects', () => {
-        const queueProject: Project = {
-          filename: 'queue-project',
-          project: 'Queue Project',
-          priority: 'low',
-          deadline: null,
-          tasks: [
-            { id: '1', name: 'Queue Task', duration: 60, blockType: 'any', dependencies: [] },
-          ],
-        }
-
-        const configWithQueue: Config = {
-          ...defaultConfig,
-          queue: ['queue-project'],
-        }
-
-        const result = createSchedule(
-          [queueProject],
-          [],
-          configWithQueue,
-          '2025-01-13',
-          1
-        )
-
-        const queueEvents = result.schedule.flatMap(day =>
-          day.events.filter(e => e.source === 'queue-project')
-        )
-
-        expect(queueEvents.length).toBe(0)
-      })
     })
 
     describe('Dependency Handling', () => {

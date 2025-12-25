@@ -137,10 +137,6 @@ export default function AvailableTimeEditor({
     return SLOT_TYPE_OPTIONS.find(opt => opt.value === type)?.color || 'bg-gray-100 text-gray-700'
   }
 
-  const getTypeLabel = (type: SlotType) => {
-    return SLOT_TYPE_OPTIONS.find(opt => opt.value === type)?.label || '전체'
-  }
-
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="border-b border-gray-200 px-4 py-3">

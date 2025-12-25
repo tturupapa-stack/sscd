@@ -27,7 +27,6 @@ export function createTestApp(mockConfig?: Partial<Config>) {
     },
     focus: 'instagram-auto',
     buffer: 'data-briefing',
-    queue: [],
     schedule_weeks: 2,
     calendar_id: 'primary',
     ...mockConfig,
