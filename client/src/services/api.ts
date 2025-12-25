@@ -19,6 +19,7 @@ export interface Project {
   priority: 'high' | 'medium' | 'low'
   deadline: string | null
   tasks: Task[]
+  role?: 'focus' | 'buffer'  // 프론트엔드에서 설정한 역할
 }
 
 export interface RoutineTask {
@@ -49,6 +50,16 @@ export interface DaySchedule {
   events: ScheduledEvent[]
 }
 
+// 루틴 대체 배치 정보
+export interface RoutineAlternative {
+  routineName: string
+  originalDay: string       // 원래 요일
+  originalTime: string      // 원래 선호 시간
+  scheduledDay: string      // 실제 배치된 요일
+  scheduledTime: string     // 실제 배치된 시간
+  reason: 'no_slot' | 'slot_full'  // 대체 사유
+}
+
 export interface ScheduleResult {
   schedule: DaySchedule[]
   summary: {
@@ -57,13 +68,22 @@ export interface ScheduleResult {
     unscheduledTasks: number
     totalHours: number
   }
+  routineAlternatives?: RoutineAlternative[]  // 대체 배치된 루틴 정보
+}
+
+// 슬롯 타입
+export type SlotType = 'routine' | 'project' | 'any'
+
+// 시간대 설정
+export interface TimeSlotConfig {
+  time: string       // "09:00-12:00"
+  type: SlotType     // "routine" | "project" | "any"
 }
 
 export interface Config {
-  available: Record<string, string[]>
+  available: Record<string, TimeSlotConfig[]>  // 요일별 시간대 + 타입
   focus: string
   buffer: string
-  queue: string[]
   schedule_weeks: number
   calendar_id: string
 }

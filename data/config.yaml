@@ -1,28 +1,42 @@
 available:
   Mon:
-    - 09:00-10:00
+    - time: 09:00-10:00
+      type: routine
   Tue:
-    - 09:00-10:00
-    - 13:00-14:00
-    - 19:00-23:00
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: project
   Wed:
-    - 09:00-10:00
-    - 13:00-14:00
-    - 19:00-23:00
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: project
   Thu:
-    - 09:00-10:00
-    - 13:00-14:00
-    - 19:00-23:00
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: project
   Fri:
-    - 09:00-10:00
-    - 13:00-14:00
-    - 19:00-23:00
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: project
   Sat:
-    - 21:00-24:00
+    - time: 21:00-24:00
+      type: any
   Sun:
-    - 21:00-24:00
-focus: instagram-auto
+    - time: 21:00-24:00
+      type: any
+focus: split-test.md
 buffer: ""
-queue: []
 schedule_weeks: 2
 calendar_id: primary

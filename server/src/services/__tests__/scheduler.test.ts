@@ -6,13 +6,13 @@ describe('scheduler', () => {
   // Test fixtures
   const defaultConfig: Config = {
     available: {
-      Mon: ['09:00-10:00'],
-      Tue: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-      Wed: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-      Thu: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-      Fri: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-      Sat: ['21:00-24:00'],
-      Sun: ['21:00-24:00'],
+      Mon: [{ time: '09:00-10:00', type: 'any' }],
+      Tue: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+      Wed: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+      Thu: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+      Fri: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+      Sat: [{ time: '21:00-24:00', type: 'any' }],
+      Sun: [{ time: '21:00-24:00', type: 'any' }],
     },
     focus: 'focus-project',
     buffer: 'buffer-project',
@@ -127,7 +127,7 @@ describe('scheduler', () => {
 
         const mondaySchedule = result.schedule.find(d => d.date === '2025-01-13')
         if (mondaySchedule && mondaySchedule.events.length > 0) {
-          const routineEvent = mondaySchedule.events.find(e => e.name === 'Morning Task' || e.title === 'Morning Task')
+          const routineEvent = mondaySchedule.events.find(e => e.title === 'Morning Task')
           if (routineEvent) {
             expect(routineEvent.start).toBe('09:00')
           }

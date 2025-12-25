@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import AvailableTimeEditor from '../components/AvailableTimeEditor'
-import ProjectRoleEditor from '../components/ProjectRoleEditor'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 import { getConfig, updateConfig, getAuthStatus, logout } from '../services/api'
-import type { Config } from '../services/api'
+import type { Config, TimeSlotConfig } from '../services/api'
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
-const DEFAULT_AVAILABLE: Record<string, string[]> = {
-  Mon: ['09:00-10:00'],
-  Tue: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-  Wed: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-  Thu: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-  Fri: ['09:00-10:00', '13:00-14:00', '19:00-23:00'],
-  Sat: ['21:00-24:00'],
-  Sun: ['21:00-24:00'],
+const DEFAULT_AVAILABLE: Record<string, TimeSlotConfig[]> = {
+  Mon: [{ time: '09:00-10:00', type: 'any' }],
+  Tue: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+  Wed: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+  Thu: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+  Fri: [{ time: '09:00-10:00', type: 'any' }, { time: '13:00-14:00', type: 'any' }, { time: '19:00-23:00', type: 'any' }],
+  Sat: [{ time: '21:00-24:00', type: 'any' }],
+  Sun: [{ time: '21:00-24:00', type: 'any' }],
 }
 
 export default function SettingsPage() {
@@ -43,7 +42,6 @@ export default function SettingsPage() {
           available: DEFAULT_AVAILABLE,
           focus: '',
           buffer: '',
-          queue: [],
           schedule_weeks: 2,
           calendar_id: 'primary'
         })
@@ -59,7 +57,7 @@ export default function SettingsPage() {
   }, [])
 
   // Handle available time change
-  const handleAvailableChange = useCallback((available: Record<string, string[]>) => {
+  const handleAvailableChange = useCallback((available: Record<string, TimeSlotConfig[]>) => {
     if (!config) return
     setConfig({ ...config, available })
     setSaveState('idle')
@@ -69,13 +67,6 @@ export default function SettingsPage() {
   const handleWeeksChange = useCallback((weeks: number) => {
     if (!config) return
     setConfig({ ...config, schedule_weeks: weeks })
-    setSaveState('idle')
-  }, [config])
-
-  // Handle project role change
-  const handleProjectRoleChange = useCallback((focus: string, buffer: string, queue: string[]) => {
-    if (!config) return
-    setConfig({ ...config, focus, buffer, queue })
     setSaveState('idle')
   }, [config])
 
@@ -208,17 +199,6 @@ export default function SettingsPage() {
             <AvailableTimeEditor
               available={config.available}
               onChange={handleAvailableChange}
-              disabled={saveState === 'saving'}
-            />
-          )}
-
-          {/* Project Role Editor */}
-          {config && (
-            <ProjectRoleEditor
-              focus={config.focus}
-              buffer={config.buffer}
-              queue={config.queue}
-              onChange={handleProjectRoleChange}
               disabled={saveState === 'saving'}
             />
           )}

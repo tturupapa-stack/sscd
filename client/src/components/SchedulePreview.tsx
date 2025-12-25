@@ -1,4 +1,4 @@
-import type { ScheduleResult, DaySchedule, ScheduledEvent } from '../services/api'
+import type { ScheduleResult, DaySchedule, ScheduledEvent, RoutineAlternative } from '../services/api'
 
 interface SchedulePreviewProps {
   result: ScheduleResult | null
@@ -21,7 +21,7 @@ export default function SchedulePreview({
     return null
   }
 
-  const { schedule, summary } = result
+  const { schedule, summary, routineAlternatives } = result
 
   const getEventTypeStyles = (type: ScheduledEvent['type']) => {
     switch (type) {
@@ -160,6 +160,11 @@ export default function SchedulePreview({
           />
         </div>
 
+        {/* Routine Alternatives Notice */}
+        {routineAlternatives && routineAlternatives.length > 0 && (
+          <RoutineAlternativesNotice alternatives={routineAlternatives} />
+        )}
+
         {/* Warning for unscheduled tasks */}
         {summary.unscheduledTasks > 0 && (
           <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
@@ -296,6 +301,68 @@ function SummaryItem({ label, value, unit, highlight }: SummaryItemProps) {
         {value}
         <span className="text-sm font-normal text-gray-500">{unit}</span>
       </p>
+    </div>
+  )
+}
+
+// 요일 영문 → 한글 변환
+const DAY_KO: Record<string, string> = {
+  Sun: '일', Mon: '월', Tue: '화', Wed: '수', Thu: '목', Fri: '금', Sat: '토'
+}
+
+interface RoutineAlternativesNoticeProps {
+  alternatives: RoutineAlternative[]
+}
+
+function RoutineAlternativesNotice({ alternatives }: RoutineAlternativesNoticeProps) {
+  // 대체 유형별 그룹핑
+  const timeChanges = alternatives.filter(a => a.reason === 'slot_full')
+  const dayChanges = alternatives.filter(a => a.reason === 'no_slot')
+
+  return (
+    <div className="mb-4 rounded-lg bg-blue-50 p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-blue-800">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>루틴 일부가 대체 시간에 배치되었습니다</span>
+      </div>
+
+      <div className="space-y-2 text-xs text-blue-700">
+        {/* 시간만 변경된 경우 */}
+        {timeChanges.length > 0 && (
+          <div>
+            <p className="mb-1 font-medium">시간 변경:</p>
+            <ul className="ml-4 space-y-0.5">
+              {timeChanges.slice(0, 5).map((alt, idx) => (
+                <li key={`time-${idx}`}>
+                  "{alt.routineName}" {DAY_KO[alt.originalDay] || alt.originalDay}요일: {alt.originalTime} → {alt.scheduledTime}
+                </li>
+              ))}
+              {timeChanges.length > 5 && (
+                <li className="text-blue-500">... 외 {timeChanges.length - 5}건</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* 요일이 변경된 경우 */}
+        {dayChanges.length > 0 && (
+          <div>
+            <p className="mb-1 font-medium">요일 변경 (가용시간 없음):</p>
+            <ul className="ml-4 space-y-0.5">
+              {dayChanges.slice(0, 5).map((alt, idx) => (
+                <li key={`day-${idx}`}>
+                  "{alt.routineName}" {DAY_KO[alt.originalDay] || alt.originalDay}요일 → {DAY_KO[alt.scheduledDay] || alt.scheduledDay}요일 {alt.scheduledTime}
+                </li>
+              ))}
+              {dayChanges.length > 5 && (
+                <li className="text-blue-500">... 외 {dayChanges.length - 5}건</li>
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

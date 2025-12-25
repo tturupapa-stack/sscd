@@ -10,8 +10,9 @@ import {
   syncToCalendar,
   getAuthStatus,
   estimateSchedule,
+  getConfig,
 } from '../services/api'
-import type { Project, Routine, ScheduleResult, ScheduleEstimate } from '../services/api'
+import type { Project, Routine, ScheduleResult, ScheduleEstimate, Config } from '../services/api'
 
 type PageState = 'idle' | 'parsing' | 'parsed' | 'estimating' | 'scheduling' | 'scheduled' | 'syncing' | 'synced'
 
@@ -37,11 +38,19 @@ export default function SchedulePage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [estimate, setEstimate] = useState<ScheduleEstimate | null>(null)
 
-  // Check auth status on mount
+  // Config state (루틴 충돌 확인용)
+  const [config, setConfig] = useState<Config | null>(null)
+
+  // Check auth status and fetch config on mount
   useEffect(() => {
     getAuthStatus()
       .then(({ authenticated }) => setIsAuthenticated(authenticated))
       .catch(() => setIsAuthenticated(false))
+
+    // 설정 가져오기 (루틴 충돌 확인용)
+    getConfig()
+      .then(setConfig)
+      .catch(() => setConfig(null))
   }, [])
 
   // Handle new files added
@@ -138,9 +147,10 @@ export default function SchedulePage() {
     files.forEach(f => {
       if (f.isRoutine && f.parsed) {
         routines.push(f.parsed as Routine)
-      } else if (f.parsed && f.role !== 'queue') {
+      } else if (f.parsed) {
         const project = f.parsed as Project
-        projects.push({ ...project })
+        // 프론트엔드에서 선택한 역할(focus/buffer)을 포함
+        projects.push({ ...project, role: f.role as 'focus' | 'buffer' })
       }
     })
 
@@ -364,6 +374,7 @@ export default function SchedulePage() {
               onRoleChange={handleRoleChange}
               onRemove={handleRemove}
               disabled={isProcessing}
+              config={config}
             />
           )}
 
