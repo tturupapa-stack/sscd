@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import AvailableTimeEditor from '../components/AvailableTimeEditor'
 import GoogleAuthButton from '../components/GoogleAuthButton'
-import { getConfig, updateConfig, getAuthStatus, logout } from '../services/api'
+import { getConfig, updateConfig, getAuthStatus, logout, getGoogleAuthUrl } from '../services/api'
 import type { Config, TimeSlotConfig } from '../services/api'
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
@@ -91,7 +91,7 @@ export default function SettingsPage() {
   // Handle Google login
   const handleGoogleLogin = useCallback(() => {
     // Redirect to backend auth endpoint
-    window.location.href = '/api/auth/google'
+    window.location.href = getGoogleAuthUrl()
   }, [])
 
   // Handle Google logout

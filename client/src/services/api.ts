@@ -1,7 +1,11 @@
 import axios from 'axios'
 
+// Production에서는 Render 백엔드 URL 사용
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
+  withCredentials: true, // CORS 요청시 쿠키 전송
 })
 
 // Types
@@ -154,4 +158,10 @@ export async function estimateSchedule(
     startDate,
   })
   return data
+}
+
+// Google OAuth URL 반환
+export function getGoogleAuthUrl(): string {
+  const baseUrl = import.meta.env.VITE_API_URL || '/api'
+  return `${baseUrl}/auth/google`
 }

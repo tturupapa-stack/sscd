@@ -41,17 +41,13 @@ router.get('/google/callback', async (req, res) => {
 
     await exchangeCodeForTokens(code)
 
-    // 프론트엔드로 리다이렉트 (production에서는 같은 도메인 사용)
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? ''
-      : 'http://localhost:5173'
-    res.redirect(`${baseUrl}/settings?auth=success`)
+    // 프론트엔드로 리다이렉트
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+    res.redirect(`${frontendUrl}/settings?auth=success`)
   } catch (error) {
     console.error('OAuth callback error:', error)
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? ''
-      : 'http://localhost:5173'
-    res.redirect(`${baseUrl}/settings?auth=error`)
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+    res.redirect(`${frontendUrl}/settings?auth=error`)
   }
 })
 
