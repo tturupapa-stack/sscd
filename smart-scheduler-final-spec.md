@@ -66,21 +66,49 @@ md 파일 드래그앤드롭 (1분)
 ## 4. 설정 파일 (config.yaml)
 
 ```yaml
-# 가용 시간 설정
+# 가용 시간 설정 (시간대별 슬롯 타입 지정)
 available:
-  Mon: ["09:00-10:00"]
-  Tue: ["09:00-10:00", "13:00-14:00", "19:00-23:00"]
-  Wed: ["09:00-10:00", "13:00-14:00", "19:00-23:00"]
-  Thu: ["09:00-10:00", "13:00-14:00", "19:00-23:00"]
-  Fri: ["09:00-10:00", "13:00-14:00", "19:00-23:00"]
-  Sat: ["21:00-24:00"]
-  Sun: ["21:00-24:00"]
+  Mon:
+    - time: 09:00-10:00
+      type: routine      # 루틴 전용 슬롯
+  Tue:
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project      # 프로젝트 전용 슬롯
+    - time: 19:00-23:00
+      type: any          # 모든 유형 배치 가능
+  Wed:
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: any
+  Thu:
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: any
+  Fri:
+    - time: 09:00-10:00
+      type: routine
+    - time: 13:00-14:00
+      type: project
+    - time: 19:00-23:00
+      type: any
+  Sat:
+    - time: 21:00-24:00
+      type: any
+  Sun:
+    - time: 21:00-24:00
+      type: any
 
-# 프로젝트 역할 (파일명, 확장자 제외)
-focus: instagram-auto        # 현재 집중 프로젝트
-buffer: data-briefing        # 버퍼 프로젝트
-queue:                       # 대기열 (배치 안 함)
-  - next-project
+# 프로젝트 역할 (파일 업로드 시 선택)
+focus: instagram-auto.md     # 현재 집중 프로젝트
+buffer: data-briefing.md     # 버퍼 프로젝트
 
 # 스케줄 생성 범위
 schedule_weeks: 2
@@ -88,6 +116,14 @@ schedule_weeks: 2
 # Google Calendar 설정
 calendar_id: primary
 ```
+
+### 슬롯 타입 (Slot Type)
+
+| 타입 | 설명 | 배치 가능 |
+|------|------|----------|
+| `routine` | 루틴 전용 | 루틴만 |
+| `project` | 프로젝트 전용 | Focus, Buffer 프로젝트 |
+| `any` | 모든 유형 | 루틴 + 프로젝트 모두 |
 
 ---
 
@@ -223,10 +259,9 @@ const ROUTINE_REGEX = /^- \[ \] (.+?)\s*\|\s*(\d+\.?\d*[hm])\s*\|\s*([a-zA-Z,]+)
 ### 6.1 배치 우선순위
 
 ```
-1. Routine (반복 루틴) - 고정 시간에 먼저 배치
-2. Focus 프로젝트 태스크 - 남는 시간에 우선 배치
-3. Buffer 프로젝트 태스크 - Focus 배치 후 남는 시간에 배치
-4. Queue - 배치하지 않음 (대기만)
+1. Routine (반복 루틴) - 고정 시간에 먼저 배치 (routine/any 슬롯)
+2. Focus 프로젝트 태스크 - 남는 시간에 우선 배치 (project/any 슬롯)
+3. Buffer 프로젝트 태스크 - Focus 배치 후 남는 시간에 배치 (project/any 슬롯)
 ```
 
 ### 6.2 배치 규칙
@@ -236,8 +271,13 @@ const ROUTINE_REGEX = /^- \[ \] (.+?)\s*\|\s*(\d+\.?\d*[hm])\s*\|\s*([a-zA-Z,]+)
    - short 태스크 → 1시간 이하 슬롯에 우선 배치
    - long 태스크 → 3시간 이상 슬롯에만 배치
    - any 태스크 → 남는 슬롯에 배치
-3. **컨텍스트 스위칭 최소화**: 하루에 프로젝트 전환 최대 1회
-4. **같은 프로젝트 연속 배치**: 가능한 한 같은 프로젝트 태스크를 연속으로
+3. **슬롯 타입 매칭**:
+   - routine 슬롯 → 루틴만 배치 가능
+   - project 슬롯 → 프로젝트(Focus/Buffer)만 배치 가능
+   - any 슬롯 → 모든 유형 배치 가능
+4. **루틴 대체 배치**: 선호 시간에 슬롯이 없으면 같은 주의 다른 요일에 대체 배치
+5. **컨텍스트 스위칭 최소화**: 하루에 프로젝트 전환 최대 1회
+6. **같은 프로젝트 연속 배치**: 가능한 한 같은 프로젝트 태스크를 연속으로
 
 ### 6.3 슬롯 분류 (현재 가용시간 기준)
 
@@ -322,13 +362,16 @@ function scheduleProjectTasks(project, slots, schedule) {
 // Response
 {
   available: {
-    Mon: ["09:00-10:00"],
-    Tue: ["09:00-10:00", "13:00-14:00", "19:00-23:00"],
+    Mon: [{ time: "09:00-10:00", type: "routine" }],
+    Tue: [
+      { time: "09:00-10:00", type: "routine" },
+      { time: "13:00-14:00", type: "project" },
+      { time: "19:00-23:00", type: "any" }
+    ],
     // ...
   },
-  focus: "instagram-auto",
-  buffer: "data-briefing",
-  queue: ["next-project"],
+  focus: "instagram-auto.md",
+  buffer: "data-briefing.md",
   schedule_weeks: 2,
   calendar_id: "primary"
 }
@@ -338,10 +381,9 @@ function scheduleProjectTasks(project, slots, schedule) {
 ```typescript
 // Request Body
 {
-  available: { ... },
-  focus: "instagram-auto",
-  buffer: "data-briefing",
-  queue: ["next-project"],
+  available: { ... },  // 위와 동일한 형식
+  focus: "instagram-auto.md",
+  buffer: "data-briefing.md",
   schedule_weeks: 2
 }
 
@@ -437,7 +479,7 @@ function scheduleProjectTasks(project, slots, schedule) {
         {
           start: "13:00",
           end: "14:00",
-          title: "Instagram API 문서 리서치",
+          title: "[인스타 자동 콘텐츠 시스템] Instagram API 문서 리서치",
           type: "focus",
           source: "instagram-auto",
           taskId: "1"
@@ -445,7 +487,7 @@ function scheduleProjectTasks(project, slots, schedule) {
         {
           start: "19:00",
           end: "21:00",
-          title: "Google OAuth 연동",
+          title: "[인스타 자동 콘텐츠 시스템] Google OAuth 연동",
           type: "focus",
           source: "instagram-auto",
           taskId: "2"
@@ -453,7 +495,7 @@ function scheduleProjectTasks(project, slots, schedule) {
         {
           start: "21:00",
           end: "22:00",
-          title: "데이터 수집 설계",
+          title: "[데이터 브리핑] 데이터 수집 설계",
           type: "buffer",
           source: "data-briefing",
           taskId: "1"
@@ -630,38 +672,23 @@ function scheduleProjectTasks(project, slots, schedule) {
 │  Smart Scheduler                    [스케줄] [설정] │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  ⏰ 가용 시간                                       │
+│  ⏰ 가용 시간 (슬롯 타입: 전체/루틴/프로젝트)       │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ 월  │ 09:00 - 10:00                  [+ 추가] │  │
+│  │ 월  │ 09:00 - 10:00  [루틴▼]          [+ 추가] │  │
 │  │     │                                         │  │
-│  │ 화  │ 09:00 - 10:00                    [삭제] │  │
-│  │     │ 13:00 - 14:00                    [삭제] │  │
-│  │     │ 19:00 - 23:00                    [삭제] │  │
+│  │ 화  │ 09:00 - 10:00  [루틴▼]            [삭제] │  │
+│  │     │ 13:00 - 14:00  [프로젝트▼]        [삭제] │  │
+│  │     │ 19:00 - 23:00  [전체▼]            [삭제] │  │
 │  │     │                                [+ 추가] │  │
-│  │ 수  │ 09:00 - 10:00                    [삭제] │  │
-│  │     │ 13:00 - 14:00                    [삭제] │  │
-│  │     │ 19:00 - 23:00                    [삭제] │  │
+│  │ 수  │ 09:00 - 10:00  [루틴▼]            [삭제] │  │
+│  │     │ 13:00 - 14:00  [프로젝트▼]        [삭제] │  │
+│  │     │ 19:00 - 23:00  [전체▼]            [삭제] │  │
 │  │     │                                [+ 추가] │  │
-│  │ 목  │ 09:00 - 10:00                    [삭제] │  │
-│  │     │ 13:00 - 14:00                    [삭제] │  │
-│  │     │ 19:00 - 23:00                    [삭제] │  │
+│  │ ...                                           │  │
+│  │ 토  │ 21:00 - 24:00  [전체▼]            [삭제] │  │
 │  │     │                                [+ 추가] │  │
-│  │ 금  │ 09:00 - 10:00                    [삭제] │  │
-│  │     │ 13:00 - 14:00                    [삭제] │  │
-│  │     │ 19:00 - 23:00                    [삭제] │  │
+│  │ 일  │ 21:00 - 24:00  [전체▼]            [삭제] │  │
 │  │     │                                [+ 추가] │  │
-│  │ 토  │ 21:00 - 24:00                    [삭제] │  │
-│  │     │                                [+ 추가] │  │
-│  │ 일  │ 21:00 - 24:00                    [삭제] │  │
-│  │     │                                [+ 추가] │  │
-│  └───────────────────────────────────────────────┘  │
-│                                                     │
-│  📁 프로젝트 역할                                   │
-│  ┌───────────────────────────────────────────────┐  │
-│  │ Focus  │ [instagram-auto          ▼]         │  │
-│  │ Buffer │ [data-briefing           ▼]         │  │
-│  │ Queue  │ next-project                 [삭제] │  │
-│  │        │ [프로젝트명 입력]          [+ 추가] │  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  📅 기본 스케줄 생성 범위                           │
@@ -689,7 +716,7 @@ function scheduleProjectTasks(project, slots, schedule) {
 /client/src
   ├── /components
   │   ├── FileDropzone.tsx        # 파일 드래그앤드롭
-  │   ├── FileList.tsx            # 첨부된 파일 목록
+  │   ├── FileList.tsx            # 첨부된 파일 목록 (역할 선택: Focus/Buffer/Routine)
   │   ├── FileTypeSelector.tsx    # 템플릿/일반문서 선택
   │   ├── TemplateGuide.tsx       # 템플릿 형식 가이드 (펼침/접힘)
   │   ├── SchedulePreview.tsx     # 스케줄 미리보기
@@ -697,8 +724,7 @@ function scheduleProjectTasks(project, slots, schedule) {
   │   ├── EventItem.tsx           # 개별 이벤트
   │   ├── AIResultEditor.tsx      # AI 분석 결과 편집
   │   ├── AIRequirements.tsx      # AI 파싱 실패 시 요구사항 안내
-  │   ├── AvailableTimeEditor.tsx # 가용시간 편집
-  │   ├── ProjectRoleEditor.tsx   # 프로젝트 역할 편집
+  │   ├── AvailableTimeEditor.tsx # 가용시간 편집 (슬롯 타입 선택 포함)
   │   ├── GoogleAuthButton.tsx    # Google 연결 버튼
   │   └── Navigation.tsx          # 상단 네비게이션
   │
@@ -727,39 +753,45 @@ function scheduleProjectTasks(project, slots, schedule) {
 
 ## 10. 개발 단계
 
-### Phase 1: 프로젝트 셋업 (2-3시간)
-- [ ] 모노레포 구조 생성 (client, server, data)
-- [ ] TypeScript 설정
-- [ ] 기본 의존성 설치
-- [ ] 개발 환경 설정 (Vite, nodemon)
+### Phase 1: 프로젝트 셋업 ✅
+- [x] 모노레포 구조 생성 (client, server, data)
+- [x] TypeScript 설정
+- [x] 기본 의존성 설치
+- [x] 개발 환경 설정 (Vite, nodemon)
 
-### Phase 2: 백엔드 핵심 (6-8시간)
-- [ ] Express 서버 셋업
-- [ ] config.yaml 읽기/쓰기 API
-- [ ] md 파일 파싱 로직 (프로젝트, 루틴)
-- [ ] 스케줄 배치 알고리즘
-- [ ] Google Calendar API 연동 (OAuth, 이벤트 조회/생성)
+### Phase 2: 백엔드 핵심 ✅
+- [x] Express 서버 셋업
+- [x] config.yaml 읽기/쓰기 API
+- [x] md 파일 파싱 로직 (프로젝트, 루틴)
+- [x] 스케줄 배치 알고리즘 (의존성, 블록타입, 슬롯타입, 태스크 분할)
+- [x] Google Calendar API 연동 (OAuth, 이벤트 조회/생성)
 
-### Phase 3: 프론트엔드 기본 (4-5시간)
-- [ ] React + Vite 셋업
-- [ ] 라우팅 (/, /settings)
-- [ ] 파일 드래그앤드롭 컴포넌트
-- [ ] 스케줄 미리보기 UI
-- [ ] API 연동
+### Phase 3: 프론트엔드 기본 ✅
+- [x] React + Vite 셋업
+- [x] 라우팅 (/, /settings)
+- [x] 파일 드래그앤드롭 컴포넌트
+- [x] 스케줄 미리보기 UI
+- [x] API 연동
 
-### Phase 4: 설정 페이지 (2-3시간)
-- [ ] 가용시간 편집 UI
-- [ ] 프로젝트 역할 편집 UI
-- [ ] Google 연결 상태 표시
-- [ ] 저장 기능
+### Phase 4: 설정 페이지 ✅
+- [x] 가용시간 편집 UI (슬롯 타입 선택 포함)
+- [x] ~~프로젝트 역할 편집 UI~~ → 파일 업로드 시 역할 선택으로 대체
+- [x] Google 연결 상태 표시
+- [x] 저장 기능
 
-### Phase 5: 통합 및 테스트 (3-4시간)
-- [ ] 전체 플로우 테스트
-- [ ] 에러 처리
-- [ ] 엣지 케이스 처리
-- [ ] UI 다듬기
+### Phase 5: 통합 및 테스트 ✅
+- [x] 전체 플로우 테스트
+- [x] 에러 처리
+- [x] 엣지 케이스 처리 (루틴 대체 배치, 태스크 분할 등)
+- [x] UI 다듬기
+- [x] 97개 테스트 케이스 통과
 
-### 총 예상 시간: 17-23시간
+### 완료된 추가 기능
+- [x] 슬롯 타입 기능 (routine/project/any)
+- [x] 캘린더 이벤트 제목 형식: `[프로젝트명] 태스크명`
+- [x] 루틴 대체 배치 (선호 시간에 슬롯 없을 때)
+- [x] 기간 확장 확인 다이얼로그
+- [x] 태스크 분할 배치 (긴 태스크를 여러 슬롯에 나눔)
 
 ---
 
@@ -797,9 +829,62 @@ http://localhost:3000  # 백엔드 API
 
 ---
 
-## 13. 향후 확장 (선택)
+## 13. 사용 가이드: 업무/개인 시간 분리
 
-### 13.1 AI 기획서 파싱 (Phase 6)
+슬롯 타입과 역할(Focus/Buffer)을 조합하여 업무/개인 태스크를 시간대별로 분리할 수 있습니다.
+
+### 13.1 설정 예시
+
+```yaml
+# config.yaml - 업무/개인 시간 분리 예시
+available:
+  Mon:
+    - time: 09:00-10:00
+      type: routine      # 아침 루틴 (출근 준비 등)
+    - time: 10:00-12:00
+      type: project      # 업무 시간 - 프로젝트만
+    - time: 13:00-18:00
+      type: project      # 업무 시간 - 프로젝트만
+    - time: 19:00-23:00
+      type: any          # 개인 시간 - 모두 가능
+  Tue:
+    # ... 평일 동일
+  Sat:
+    - time: 10:00-22:00
+      type: any          # 주말 개인 시간
+  Sun:
+    - time: 10:00-22:00
+      type: any          # 주말 개인 시간
+```
+
+### 13.2 파일 업로드 전략
+
+| 시간대 | 슬롯 타입 | 올릴 파일 | 역할 |
+|--------|----------|----------|------|
+| 평일 09:00 | `routine` | 업무 루틴 (회의 등) | Routine |
+| 평일 10-18시 | `project` | 업무 프로젝트 | Focus |
+| 평일 19-23시 | `any` | 개인 프로젝트, 개인 루틴 | Buffer, Routine |
+| 주말 | `any` | 개인 프로젝트, 개인 루틴 | Buffer, Routine |
+
+### 13.3 배치 결과
+
+1. **업무 프로젝트** (Focus): 평일 낮 `project` 슬롯에 우선 배치
+2. **개인 프로젝트** (Buffer): Focus 배치 후 남는 `any` 슬롯(저녁/주말)에 배치
+3. **업무 루틴**: 아침 `routine` 슬롯에 배치
+4. **개인 루틴**: 저녁/주말 `any` 슬롯에 배치
+
+### 13.4 주의사항
+
+- `project` 슬롯에는 루틴이 배치되지 않음
+- `routine` 슬롯에는 프로젝트가 배치되지 않음
+- `any` 슬롯에는 모든 유형이 배치 가능
+- Focus가 Buffer보다 먼저 배치됨
+
+---
+
+## 14. 향후 확장 (선택)
+
+### 14.1 AI 기획서 파싱 (Phase 6)
 
 템플릿 형식이 아닌 일반 기획서/PRD를 업로드하면 AI가 태스크를 자동 추출하는 기능.
 
@@ -988,7 +1073,7 @@ ANTHROPIC_API_KEY=your_api_key
 
 ---
 
-### 13.2 기타 확장 기능
+### 14.2 기타 확장 기능
 
 - [ ] 태스크 완료 체크 시 md 파일 자동 업데이트
 - [ ] 미완료 태스크 다음 주로 자동 재배치
