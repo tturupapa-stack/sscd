@@ -21,18 +21,18 @@
     "express": "^4.22.1",
     "googleapis": "^169.0.0",
     "multer": "^2.0.2",
-    "yaml": "^2.8.2"
-  },
-  "devDependencies": {
+    "yaml": "^2.8.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
     "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.16",
     "supertest": "^7.1.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   }
 }
